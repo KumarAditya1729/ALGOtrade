@@ -29,7 +29,7 @@ export const Login: React.FC = () => {
         setError(response.data.msg || 'Login failed');
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Network error connecting to Unified API');
+      setError(err.response?.data?.msg || err.response?.data?.message || 'Network error connecting to Unified API');
     } finally {
       setLoading(false);
     }
