@@ -1,0 +1,11 @@
+{
+    "Plugin Name": "DefinedGe Securities",
+    "Plugin URI": "https://calculatedrisk.in",
+    "Description": "DefinedGe Securities CalculatedRisk Plugin",
+    "Version": "1.0",
+    "Author": "CalculatedRisk Team",
+    "Author URI": "https://calculatedrisk.in",
+    "supported_exchanges": ["NSE", "BSE", "NFO", "BFO", "CDS", "MCX", "NSE_INDEX", "BSE_INDEX"],
+    "broker_type": "IN_stock",
+    "leverage_config": false
+}

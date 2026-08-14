@@ -1,0 +1,20 @@
+from app.services.live_trading.calculatedrisk_compat import get_logger
+
+logger = get_logger(__name__)
+
+
+def calculate_margin_api(positions, auth):
+    """
+    Calculate margin requirement for a basket of positions.
+
+    Note: Compositedge does not provide a margin calculator API.
+
+    Args:
+        positions: List of positions in CalculatedRisk format
+        auth: Authentication token for Compositedge
+
+    Raises:
+        NotImplementedError: Compositedge does not support margin calculator API
+    """
+    logger.warning("Compositedge does not provide margin calculator API")
+    raise NotImplementedError("Compositedge does not support margin calculator API")
