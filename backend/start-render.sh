@@ -1,12 +1,12 @@
 #!/bin/bash
 # Start script for Render Free Tier
-# Runs Celery and Uvicorn in the same container
+# Runs Celery and Flask in the same container
 
 echo "Running database migrations..."
-python -m alembic upgrade head
+python -m app.commands.migrate
 
 echo "Starting Celery worker in the background..."
-python -m celery -A app.workers.trading.celery_app worker --loglevel=info &
+python -m celery -A app.celery_app:celery_app worker --loglevel=INFO -Q jobs,ai,maintenance &
 
-echo "Starting FastAPI backend..."
-python -m uvicorn app.main:app --host 0.0.0.0 --port ${PORT:-5000}
+echo "Starting Flask backend..."
+gunicorn -c gunicorn_config.py "run:app" --bind 0.0.0.0:${PORT:-5000}
