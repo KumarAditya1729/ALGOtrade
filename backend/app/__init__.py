@@ -88,8 +88,8 @@ def _configure_cors(app: Flask) -> None:
         if origin not in origins:
             origins.append(origin)
 
-    CORS(app, origins=origins, supports_credentials=False, send_wildcard=False)
-    logger.info(f"CORS allowed origins: {origins}")
+    CORS(app, origins="*", supports_credentials=False, send_wildcard=False)
+    logger.info(f"CORS allowed origins: *")
 
 
 def _configure_ibkr_asyncio() -> None:
