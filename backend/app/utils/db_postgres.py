@@ -110,7 +110,15 @@ def _parse_database_url(url: str) -> Dict[str, Any]:
     
     # Split host:port/dbname
     if '/' in hostpart:
-        hostport, result['dbname'] = hostpart.split('/', 1)
+        hostport, db_and_query = hostpart.split('/', 1)
+        if '?' in db_and_query:
+            result['dbname'], query_str = db_and_query.split('?', 1)
+            # Parse query parameters (e.g., sslmode=require)
+            from urllib.parse import parse_qsl
+            for k, v in parse_qsl(query_str):
+                result[k] = v
+        else:
+            result['dbname'] = db_and_query
     else:
         hostport = hostpart
     
@@ -149,30 +157,31 @@ def _get_connection_pool():
         effective_min, effective_max = _resolve_effective_pool_limits(params)
 
         try:
-            _connection_pool = pool.ThreadedConnectionPool(
-                minconn=effective_min,
-                maxconn=effective_max,
-                host=params.get('host', 'localhost'),
-                port=params.get('port', 5432),
-                user=params.get('user', 'calculatedrisk'),
-                password=params.get('password', ''),
-                dbname=params.get('dbname', 'calculatedrisk'),
-                connect_timeout=10,
-                application_name=DB_APPLICATION_NAME,
-                # Apply timezone at connection establishment so we don't need
-                # per-checkout SET TIME ZONE (which left connections in an
-                # "idle in transaction" state when no explicit commit/rollback
-                # followed).  keepalives keep dead sockets from lingering in
-                # the pool when the PG side or a NAT drops them.
-                options="-c timezone=UTC",
-                keepalives=1,
-                keepalives_idle=30,
-                keepalives_interval=10,
-                keepalives_count=3,
-            )
+            pool_kwargs = {
+                'minconn': effective_min,
+                'maxconn': effective_max,
+                'connect_timeout': 10,
+                'application_name': DB_APPLICATION_NAME,
+                'options': "-c timezone=UTC",
+                'keepalives': 1,
+                'keepalives_idle': 30,
+                'keepalives_interval': 10,
+                'keepalives_count': 3,
+            }
+            # Defaults
+            pool_kwargs.setdefault('host', 'localhost')
+            pool_kwargs.setdefault('port', 5432)
+            pool_kwargs.setdefault('user', 'calculatedrisk')
+            pool_kwargs.setdefault('password', '')
+            pool_kwargs.setdefault('dbname', 'calculatedrisk')
+            
+            # Override with extracted params (including query parameters like sslmode)
+            pool_kwargs.update(params)
+            
+            _connection_pool = pool.ThreadedConnectionPool(**pool_kwargs)
             logger.info(
                 f"PostgreSQL connection pool created: "
-                f"{params.get('host')}:{params.get('port')}/{params.get('dbname')} "
+                f"{pool_kwargs.get('host')}:{pool_kwargs.get('port')}/{pool_kwargs.get('dbname')} "
                 f"(min={effective_min}, max={effective_max}, "
                 f"configured_min={DB_POOL_MIN}, configured_max={_pool_max_config_label()}, "
                 f"acquire_timeout={DB_POOL_ACQUIRE_TIMEOUT}s, "
@@ -210,16 +219,22 @@ def _probe_pg_connection_limit(params: Dict[str, Any]) -> Optional[Dict[str, int
         return None
     probe = None
     try:
-        probe = psycopg2.connect(
-            host=params.get('host', 'localhost'),
-            port=params.get('port', 5432),
-            user=params.get('user', 'calculatedrisk'),
-            password=params.get('password', ''),
-            dbname=params.get('dbname', 'calculatedrisk'),
-            connect_timeout=5,
-            application_name=f"{DB_APPLICATION_NAME}_pool_probe",
-            options="-c timezone=UTC",
-        )
+        probe_kwargs = {
+            'connect_timeout': 5,
+            'application_name': f"{DB_APPLICATION_NAME}_pool_probe",
+            'options': "-c timezone=UTC",
+        }
+        # Defaults
+        probe_kwargs.setdefault('host', 'localhost')
+        probe_kwargs.setdefault('port', 5432)
+        probe_kwargs.setdefault('user', 'calculatedrisk')
+        probe_kwargs.setdefault('password', '')
+        probe_kwargs.setdefault('dbname', 'calculatedrisk')
+        
+        # Override with extracted params
+        probe_kwargs.update(params)
+        
+        probe = psycopg2.connect(**probe_kwargs)
         max_connections = _show_pg_int(probe, "max_connections", 0)
         superuser_reserved = _show_pg_int(probe, "superuser_reserved_connections", 0)
         reserved = _show_pg_int(probe, "reserved_connections", 0)
