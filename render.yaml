@@ -2,6 +2,7 @@ services:
   - type: web
     name: calculatedrisk-backend
     env: python
+    rootDir: backend
     buildCommand: "pip install -r requirements.txt"
     startCommand: "bash start-render.sh"
     envVars:
