@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: calculatedrisk-backend
+    env: python
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "bash start-render.sh"
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: SECRET_KEY
+        sync: false
+      - key: ANGEL_ONE_API_KEY
+        sync: false
+      - key: ANGEL_ONE_CLIENT_ID
+        sync: false
+      - key: ANGEL_ONE_PASSWORD
+        sync: false
+      - key: ANGEL_ONE_TOTP_SECRET
+        sync: false
