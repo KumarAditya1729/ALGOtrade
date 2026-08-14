@@ -318,6 +318,11 @@ CREATE TABLE IF NOT EXISTS qd_strategies_trading (
 CREATE INDEX IF NOT EXISTS idx_strategies_user_id ON qd_strategies_trading(user_id);
 CREATE INDEX IF NOT EXISTS idx_strategies_status ON qd_strategies_trading(status);
 
+-- Seed a dummy user to satisfy foreign key constraints for the manual strategy
+INSERT INTO qd_users (id, email, password_hash, role) 
+VALUES (1, 'admin@example.com', '$2b$12$K1rZtE8fU4z9gY.c8.1.N.g6o3p.GvH.5X3C7z5Z8e6yD6O', 'admin') 
+ON CONFLICT DO NOTHING;
+
 -- Seed a dummy strategy (ID 0) to satisfy foreign key constraints for manual paper trades
 INSERT INTO qd_strategies_trading (id, user_id, strategy_name, strategy_type, execution_mode) 
 VALUES (0, 1, 'Manual Trading / Paper', 'Manual', 'paper') 
