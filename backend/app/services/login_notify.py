@@ -158,6 +158,8 @@ def _action_label(action: str, details: Dict[str, Any], zh: bool = True) -> str:
     return "密码登录" if zh else "Password login"
 
 
+import threading
+
 def notify_successful_login(
     *,
     user_id: int,
@@ -168,8 +170,28 @@ def notify_successful_login(
 ) -> None:
     """
     Record login in qd_security_logs (with device/geo) and notify on new device/region.
-    Best-effort; never raises to callers.
+    Spawns a background thread so it doesn't block the HTTP request.
     """
+    thread = threading.Thread(
+        target=_notify_successful_login_sync,
+        kwargs={
+            "user_id": user_id,
+            "action": action,
+            "ip_address": ip_address,
+            "user_agent": user_agent,
+            "extra_details": extra_details,
+        },
+        daemon=True,
+    )
+    thread.start()
+
+def _notify_successful_login_sync(
+    user_id: int,
+    action: str,
+    ip_address: str = "",
+    user_agent: str = "",
+    extra_details: Optional[Dict[str, Any]] = None,
+) -> None:
     if action not in LOGIN_ACTIONS:
         action = "login_success"
 
