@@ -3,7 +3,7 @@ services:
     name: calculatedrisk-backend
     env: python
     rootDir: backend
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "pip install -r requirements.txt && curl -sL 'https://caddyserver.com/api/download?os=linux&arch=amd64' -o caddy && chmod +x caddy"
     startCommand: "bash start-render.sh"
     envVars:
       - key: DATABASE_URL

@@ -24,7 +24,7 @@ def cache_redis_url() -> str:
 
 
 def celery_broker_url() -> str:
-    explicit = os.getenv("CELERY_BROKER_URL", "").strip()
+    explicit = os.getenv("CELERY_BROKER_URL", os.getenv("REDIS_URL", "")).strip()
     if explicit:
         return explicit
     return _build_url(
@@ -36,7 +36,7 @@ def celery_broker_url() -> str:
 
 
 def celery_result_backend_url() -> str:
-    explicit = os.getenv("CELERY_RESULT_BACKEND", "").strip()
+    explicit = os.getenv("CELERY_RESULT_BACKEND", os.getenv("REDIS_URL", "")).strip()
     if explicit:
         return explicit
     return _build_url(

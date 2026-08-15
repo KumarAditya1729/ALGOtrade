@@ -39,6 +39,8 @@ class RedisConfig(metaclass=MetaRedisConfig):
     @classmethod
     def get_url(cls) -> str:
         """Return the Redis connection URL."""
+        if os.getenv("REDIS_URL"):
+            return os.getenv("REDIS_URL").strip()
         if cls.PASSWORD:
             return f"redis://:{cls.PASSWORD}@{cls.HOST}:{cls.PORT}/{cls.DB}"
         return f"redis://{cls.HOST}:{cls.PORT}/{cls.DB}"
